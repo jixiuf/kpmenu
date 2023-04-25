@@ -1,6 +1,8 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/AlessioDP/kpmenu)](https://goreportcard.com/report/github.com/AlessioDP/kpmenu) [![Travis CI](https://travis-ci.com/AlessioDP/kpmenu.svg?branch=master)](https://travis-ci.com/AlessioDP/kpmenu)
+[![Go Report Card](https://goreportcard.com/badge/ser1.net/kpmenu)](https://goreportcard.com/report/ser1.net/kpmenu) [![Travis CI](https://travis-ci.com/ser1.net/kpmenu.svg?branch=master)](https://travis-ci.com/ser1.net/kpmenu)
 # Kpmenu
 Kpmenu is a tool written in Go used to view a KeePass database via a dmenu, or rofi, menu.
+
+**This is a hard fork** of [AlessioDP's](https://github.com/AlessioDP/kpmenu), with some significant changes. There are threat model differences, so please read at least the [Why?](#why) section; you may prefer the original.
 
 ## Features
 *   Supports KDBX v3.1 and v4.0 (based on [gokeepasslib](https://github.com/tobischo/gokeepasslib))
@@ -19,6 +21,24 @@ Kpmenu is a tool written in Go used to view a KeePass database via a dmenu, or r
 *   OTP support
     * If a field have an otp key, you can generate the number
     * New OTP and old TOTP methods are supported
+
+## Why?
+
+The most impactful difference with upstream is the threat model.  AlessioDP's project has a distinct threat model and protections; this fork deviates from some of those core principles.
+
+The first difference is a result of some reluctance of upstream to include PRs necessary to enable autotype, via [quasiauto](https://hg.sr.ht/~ser/quasiauto). I've been having to maintain a separate fork for those changes anyway; this fork includes them. 
+
+The second change replaces viper with claptrap. Viper is a large library with many dependencies, which increases the surface area for security issues. By using Claptrap, not only are there fewer dependencies (and far less code) to audit, but the resulting binary is much smaller as well:
+
+|                   | Number of external library dependencies | Executable size | 
+| kpmenu + viper    | 22                                      | 7,581k          |
+| kpmenu + claptrap | 9                                       | 5,393k          |
+
+That's fewer than half the libraries pulled in, and a 30% reduction in binary size.
+
+The third change is the most significant vis-a-vis threat model, and ultimately why this must be a hard fork: I plan to add support that will let kpmenu be used as a replacement for secret-tool / pass. This is a change AlessioDP will not accept, since it does open a new attack vector. By design, kpmenu never provides secrets to any external program that it doesn't control -- even the autotype function I added is handled in a way that kpmenu *calls* quasiauto; it adds no more risk than putting the password in the clipboard as it already did. To be used as a replacement for secret-tool or pass, kpmenu will have to pass secrets back to a calling program. IMO, most people are already doing this, via the HTTP KeepassXC API, or with secret-tool, or with pass, or with some other password store, so adding this to kpmenu won't make anyone's system less secure. However, it is a change that will almost certainly not be accepted upstream.
+
+Note that, as of this version, only the first two changes have been made.
 
 ## Dependencies
 *   `go` (compile only)
@@ -48,7 +68,7 @@ You can directly install the package [kpmenu](https://aur.archlinux.org/packages
 If you do not set `$GOPATH`, go sources will be downloaded into `$HOME/go`.
 ```bash
 # Clone repository
-git clone https://github.com/AlessioDP/kpmenu
+git clone https://git.sr.ht/~ser/kpmenu
 cd kpmenu
 
 # Build
@@ -61,7 +81,7 @@ sudo make install
 ## Configuration
 You can set options via `config` or cli arguments.
 
-Kpmenu will check for `$HOME/.config/kpmenu/config`, you can copy the [default one](https://github.com/AlessioDP/kpmenu/blob/master/resources/config.default) with `cp ./resources/config.default $HOME/.config/kpmenu/config`.
+Kpmenu will check for `$HOME/.config/kpmenu/config`, you can copy the [default one](https://git.sr.ht/~ser/kpmenu/blob/master/resources/config.default) with `cp ./resources/config.default $HOME/.config/kpmenu/config`.
 
 ## Options
 Options taken with `kpmenu --help`
@@ -100,4 +120,4 @@ Usage of kpmenu:
 ```
 
 ## License
-See the [LICENSE](https://github.com/AlessioDP/kpmenu/blob/master/LICENSE) file.
+See the [LICENSE](https://git.sr.ht/~ser/kpmenu/blob/master/LICENSE) file.

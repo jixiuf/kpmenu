@@ -44,7 +44,7 @@ func StartServer(m *Menu) (err error) {
 
 	if m.Configuration.General.NoCache && !m.Configuration.Flags.Daemon {
 		// Directly execute kpmenu
-		if fatal := Execute(m); fatal == true {
+		if fatal := m.Execute(); fatal == true {
 			os.Exit(1) // Set exit code to 1 and exit
 		}
 	} else {
@@ -53,13 +53,13 @@ func StartServer(m *Menu) (err error) {
 			log.Printf("received a client call with args \"%v\"", packet.CliArguments)
 			m.Configuration.Flags.Autotype = false
 			m.CliArguments = packet.CliArguments
-			return Show(m)
+			return m.Show()
 		}
 
 		// Execute kpmenu for the first time, if not a daemon
 		exit := false
 		if !m.Configuration.Flags.Daemon {
-			exit = Execute(m)
+			exit = m.Execute()
 		}
 
 		// If exit is false (cache on) listen for client calls
@@ -91,8 +91,8 @@ func setupListener(m *Menu, handlePacket func(Packet) bool) error {
 	for !exit {
 		if !m.Configuration.Flags.Daemon {
 			// If not a daemon prepare cache time
-			remainingCacheTime := m.Configuration.General.CacheTimeout - int(time.Now().Sub(m.CacheStart).Seconds())
-			tcpListener.SetDeadline(time.Now().Add(time.Second * time.Duration(remainingCacheTime)))
+			remainingCacheTime := m.Configuration.General.CacheTimeout - time.Now().Sub(m.CacheStart)
+			tcpListener.SetDeadline(time.Now().Add(remainingCacheTime))
 		}
 
 		// Listen to calls

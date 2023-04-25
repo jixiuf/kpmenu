@@ -16,6 +16,9 @@ import (
 	"github.com/tobischo/gokeepasslib/v3"
 )
 
+// FIXME opt_bug.txt is a crash
+// FIXME the wrong OTP code is being generated for, eg Home Assistant and others. Always 723500 . Maybe period is wrong?
+
 // OTP constants
 const (
 	OTP          = "otp"

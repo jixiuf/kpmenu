@@ -15,16 +15,106 @@ type Menu struct {
 	Configuration *Configuration  // Configuration of kpmenu
 	Database      *Database       // Database
 	WaitGroup     *sync.WaitGroup // WaitGroup used for goroutines
+	ReloadConfig  func() error    // Call-back to update configuration options
 }
 
 // NewMenu initializes a Menu struct
-func NewMenu() *Menu {
-	return &Menu{
+func NewMenu(config *Configuration) (*Menu, error) {
+	if err := validateConfig(config); err != nil {
+		return nil, err
+	}
+
+	menu := Menu{
 		CliArguments:  os.Args[1:],
-		Configuration: NewConfiguration(),
+		Configuration: config,
 		Database:      NewDatabase(),
 		WaitGroup:     new(sync.WaitGroup),
 	}
+
+	// Set start cache time, if not a daemon
+	if !config.Flags.Daemon && !config.General.NoCache {
+		menu.CacheStart = time.Now()
+	}
+
+	return &menu, nil
+}
+
+// Execute is the function used to open the database (if necessary) and open the menu
+// returns true if the program should exit
+func (menu *Menu) Execute() bool {
+	// Open database
+	if menu.Database.Loaded == false {
+		if err := menu.OpenDatabase(); err != nil {
+			log.Print(err)
+			return err.Fatal
+		}
+	}
+
+	if !menu.Configuration.General.DisableAutotype && menu.Configuration.Flags.Autotype {
+		if err := PromptAutotype(menu); err.Error != nil {
+			log.Print(err.Error)
+		}
+		return false
+	}
+
+	// Open menu
+	if err := menu.OpenMenu(); err != nil {
+		log.Print(err)
+		return err.Fatal
+	}
+
+	// Non-fatal exit
+	return false
+}
+
+// Show checks if the database configuration is changed, if so it will re-open the database
+// returns true if the program should exit
+func (menu *Menu) Show() bool {
+	// Be sure that the database configuration is the same, otherwise a Run is necessary
+	copiedDatabase := menu.Configuration.Database
+
+	// Re handle configuration and update it if changed
+	if err := menu.ReloadConfig(); err != nil {
+		log.Fatal(err)
+		return false
+	}
+
+	// If something related to the database is changed we must re-open it, or exit true
+	if copiedDatabase.Database != menu.Configuration.Database.Database ||
+		copiedDatabase.KeyFile != menu.Configuration.Database.KeyFile ||
+		copiedDatabase.Password != menu.Configuration.Database.Password {
+		menu.Database.Loaded = false
+		log.Printf("database configuration is changed, re-opening the database")
+	}
+
+	// Check if the cache is not timed out, if not a daemon
+	if !menu.Configuration.Flags.Daemon {
+		if menu.Configuration.General.NoCache {
+			// Cache disabled
+			menu.Database.Loaded = false
+			log.Printf("no cache flag is set, re-opening the database")
+		} else if (menu.CacheStart == time.Time{}) {
+			// Cache enabled via client call
+			menu.Database.Loaded = false
+			log.Printf("cache start time not set, re-opening the database")
+		} else {
+			// Cache exists
+			difference := time.Now().Sub(menu.CacheStart)
+			if difference < menu.Configuration.General.CacheTimeout {
+				// Cache is valid
+				if !menu.Configuration.General.CacheOneTime {
+					// Set new cache start if cache one time is false
+					menu.CacheStart = time.Now()
+				}
+			} else {
+				// Cache timed out
+				menu.Database.Loaded = false
+				log.Printf("cache timed out, re-opening the database")
+			}
+		}
+	}
+
+	return menu.Execute()
 }
 
 // OpenDatabase asks for password and populates the database

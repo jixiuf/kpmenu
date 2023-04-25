@@ -1,0 +1,6 @@
+seqdiag { 
+  client  ->> server [label = "autotype [windowTitle]"];
+  server ->> quasiauto;
+  server -> quasiauto [label = "autotype <autotypeFieldData>"];
+  server <-- quasiauto;
+}
