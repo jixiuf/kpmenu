@@ -48,6 +48,9 @@ func (menu *Menu) Execute() bool {
 			log.Print(err)
 			return err.Fatal
 		}
+	} else if menu.Configuration.Flags.Daemon {
+		// reload Database for next time
+		defer menu.OpenDatabase()
 	}
 
 	if !menu.Configuration.General.DisableAutotype && menu.Configuration.Flags.Autotype {
@@ -72,12 +75,6 @@ func (menu *Menu) Execute() bool {
 func (menu *Menu) Show() bool {
 	// Be sure that the database configuration is the same, otherwise a Run is necessary
 	copiedDatabase := menu.Configuration.Database
-
-	// Re handle configuration and update it if changed
-	if err := menu.ReloadConfig(); err != nil {
-		log.Fatal(err)
-		return false
-	}
 
 	// If something related to the database is changed we must re-open it, or exit true
 	if copiedDatabase.Database != menu.Configuration.Database.Database ||

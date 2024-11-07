@@ -53,6 +53,15 @@ func StartServer(m *Menu) (err error) {
 			log.Printf("received a client call with args \"%v\"", packet.CliArguments)
 			m.Configuration.Flags.Autotype = false
 			m.CliArguments = packet.CliArguments
+			cc := InitializeFlags(packet.CliArguments)
+			clientConfig := NewConfiguration()
+			if err := LoadConfig(cc, clientConfig); err != nil {
+				log.Fatalf("loading client config: %s", err)
+				return false
+			}
+			m.Configuration = clientConfig
+			defer m.ReloadConfig()
+
 			return m.Show()
 		}
 
