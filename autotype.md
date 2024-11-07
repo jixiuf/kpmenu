@@ -3,7 +3,12 @@ Autotype
 
 This patch adds support for performing autotype in an external utility, reference tickets #3 and #8
 
-I've been using this for the past week or so, fixing behaviors and bugs and improving the autotype program; the main changes have been stable for about a week, and I added the main sequence parsing code a couple of days ago and have updated that code today. The sequence parsing code is shared with `quasiauto` through copy/paste.
+I've been using this for the past week or so, fixing behaviors and bugs and improving the autotype
+program; the main changes have been stable for about a week, and I added the main sequence parsing
+code a couple of days ago and have updated that code today. The sequence parsing code is shared with
+`quasiauto` through copy/paste.
+
+I have merge quasiauto to kpmenu, so you don't need install `quasiauto` now. 
 
 At a high level, this consists of four changes:
 
@@ -20,18 +25,12 @@ The new flags are:
 - Switches to set the external programs for getting the active window title, and for executing the autotype
 - A flag to trigger an autotype, sent by the client to the server
 
-Autotyping is handled externally, which avoids bringing in more code dependencies but introduces external dependencies. By default, the window ID program is [xdotool](https://www.semicomplete.com/projects/xdotool/), and the autotype program is [quasiauto](https://hg.sr.ht/~ser/quasiauto). The former is a common tool and will be available in (probably) any Linux distribution package manager; the latter can be installed either by downloading a pre-compiled executable, or compiling it with Go.
+Autotyping is handled internally or externally, the autotype program can be [dotoolc/dotool](https://sr.ht/~geb/dotool/). 
 
-When triggered by the client, the server launches the `customAutotypeWindowID` program (default: `xdotool`) to identify the currently active window. It then scans the database for a matching entry, using `AutoType.Association` or the `Title` if no association is set. If it finds a matching entry, it launches `customAutotypeTyper` (default: `quasiauto`) and writes the key sequence and the requested fields to the process' STDIN.
-
-To get access to the key sequences, https://github.com/tobischo/gokeepasslib/issues/68 needed to be fixed. @tobischo pushed the fixes, and this patch consequently updates the version of gokeepasslib.
+When triggered by the client, the server launches the `customAutotypeWindowID` program (default: ``) to identify the currently active window. It then scans the database for a matching entry, using `AutoType.Association` or the `Title` if no association is set. If it finds a matching entry, it launches `customAutotypeTyper` (default: ``) and writes the key sequence and the requested fields to the process' STDIN.
 
 `prompt.go` has a controversial refactoring. Much of the code to generate the Exec() command (~44 LOC) was duplicated almost identically across 5 functions. I added two new `Prompt...()` functions, which would have duplicated this code even more, so I factored that code out into a helper function `getCommand()`. This changed code that would not necessarily change just for this patch.
 
-Limitations
------------
-
-Only Linux is currently supported. This is due to the dependency on `xdotool`, which is necessitated by [a bug in `robotgo`](https://github.com/go-vgo/robotgo/issues/258) that prevents using that library to get window titles. While it is possible that external tools for Darwin and Windows exist that perform the same function as `xdotool`, I have access to neither systems and so can't test it. The current code does not prevent such a solution, and those tools could be configured with `--customAutotypeWindowID`.  If or when the `robotgo` bug is fixed, I can add window title ID to `quasiauto`, and it should be a cross-platform solution and reduce the external dependencies.
 
 Testing
 -------
