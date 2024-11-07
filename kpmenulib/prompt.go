@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-vgo/robotgo"
 	"github.com/google/shlex"
 	"github.com/tobischo/gokeepasslib/v3"
 )
@@ -511,9 +512,15 @@ func getCommand(menu *Menu, style string, pass bool, custom string) ([]string, E
 
 func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 	// Prepare autotype command
-	command := strings.Split(menu.Configuration.Executable.CustomAutotypeWindowID, " ")
+	var activeWindow string
+	var errPrompt ErrorPrompt
+	if menu.Configuration.Executable.CustomAutotypeWindowID == "" {
+		activeWindow = robotgo.GetTitle()
+	} else {
+		command := []string{"sh", "-c", menu.Configuration.Executable.CustomAutotypeWindowID}
+		activeWindow, errPrompt = executePrompt(command, nil)
+	}
 
-	activeWindow, errPrompt := executePrompt(command, nil)
 	if errPrompt.Error != nil || errPrompt.Cancelled {
 		return &Entry{}, "", errPrompt
 	}
