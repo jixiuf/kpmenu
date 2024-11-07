@@ -285,11 +285,13 @@ func PromptChoose(menu *Menu, items []string) (int, ErrorPrompt) {
 // Field data is sent to the autotype child process on STDIN as TSV data. The
 // first row is the key sequence.
 //
-//    {USERNAME}{TAB}{PASSWORD}{ENTER}
-//    key <TAB> value <CR>
+//	{USERNAME}{TAB}{PASSWORD}{ENTER}
+//	key <TAB> value <CR>
 //
 // If Keepass attributes for autotype exist for the record, they're used. If
-//  they do not exist, username & password are used; if there is no default key
+//
+//	they do not exist, username & password are used; if there is no default key
+//
 // sequence,  `{username}{tab}{password}{tab}{totp}{enter}` is used if OTP is
 // set and OTP  is not disabled, or `{USERNAME}{TAB}{PASSWORD}{ENTER}`
 // otherwise. The key  sequence is parsed, and only the key/values defined in
@@ -593,7 +595,8 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		matches = append(matches, unmatches...)
 		items := make([]string, len(matches))
 		for i, m := range matches {
-			items[i] = fmt.Sprintf("%s - %s - (%s)", m.ent.FullEntry.GetContent("Title"), m.reg, m.seq)
+			items[i] = fmt.Sprintf("%-25s %-25s %-30s", m.ent.FullEntry.GetContent("Title"),
+				m.ent.FullEntry.GetContent("UserName"), m.seq)
 		}
 		sel, err := PromptChoose(menu, items)
 		ep := ErrorPrompt{}
