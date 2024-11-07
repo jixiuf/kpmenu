@@ -96,8 +96,8 @@ const (
 
 // Autotype default helpers
 const (
-	AutotypeWindowIdentifier = "quasiauto -title"
-	AutotypeTyper            = "quasiauto"
+	AutotypeWindowIdentifier = ""
+	AutotypeTyper            = ""
 )
 
 // NewConfiguration initializes a new Configuration pointer
