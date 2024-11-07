@@ -348,6 +348,8 @@ func PromptAutotype(menu *Menu) ErrorPrompt {
 	input.WriteString("\n")
 	seq := NewSequence()
 	seq.Parse(keySeq)
+	rvp := make(Pairs)
+
 	for _, k := range seq.SeqEntries {
 		if k.Type == FIELD {
 			var value string
@@ -373,11 +375,24 @@ func PromptAutotype(menu *Menu) ErrorPrompt {
 			input.WriteString("\t")
 			input.WriteString(value)
 			input.WriteString("\n")
+			rvp[k.Token] = value
+		} else {
+			rvp[k.Token] = k.Token
 		}
 	}
-
-	command := strings.Split(menu.Configuration.Executable.CustomAutotypeTyper, " ")
-	_, errPrompt = executePrompt(command, strings.NewReader(input.String()))
+	seq.Keylag = 500 // ms
+	switch menu.Configuration.Executable.CustomAutotypeTyper {
+	case "":
+		seq.Exec(rvp, Robot{})
+	case "dotool", "dotoolc":
+		seq.Exec(rvp, Dotool{
+			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
+			lag: seq.Keylag,
+		})
+	default:
+		command := strings.Split(menu.Configuration.Executable.CustomAutotypeTyper, " ")
+		_, errPrompt = executePrompt(command, strings.NewReader(input.String()))
+	}
 
 	return errPrompt
 }

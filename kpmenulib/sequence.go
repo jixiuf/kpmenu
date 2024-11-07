@@ -44,6 +44,10 @@ type Sequence struct {
 // s := NewSequence(Robot{})
 // ```
 func NewSequence() Sequence {
+	if len(keyMap) == 0 {
+		parseKeyMap()
+	}
+
 	return Sequence{
 		make(SeqEntries, 0),
 		50,
