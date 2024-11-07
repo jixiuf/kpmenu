@@ -49,7 +49,7 @@ func (s Sequence) Exec(ds Pairs, typer Typer) {
 	// Give use time to release the control key
 	var err error
 	metas := regexp.MustCompile("([+^%@]+[a-z~]?)|([^+^%@~]+)|(~)")
-	lag := time.Duration(s.Keylag)
+	lag := time.Duration(s.Keylag) * time.Millisecond
 	// Give a little pause before we start doing anything
 	time.Sleep(lag)
 	for _, seq := range s.SeqEntries {
