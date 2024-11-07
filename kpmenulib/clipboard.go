@@ -86,7 +86,7 @@ func CleanClipboard(menu *Menu, text string) {
 		go func() {
 			defer menu.WaitGroup.Done()
 			// Sleep for X seconds
-			time.Sleep(time.Duration(menu.Configuration.General.ClipboardTimeout) * time.Second)
+			time.Sleep(time.Duration(menu.Configuration.General.ClipboardTimeout))
 
 			// Execute GetClipboard to match old and current cliboard
 			// Clean clipboard only if contains the field value
