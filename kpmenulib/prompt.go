@@ -531,6 +531,7 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		seq string
 	}
 	matches := make([]pair, 0)
+	unmatches := make([]pair, 0, len(menu.Database.Entries))
 	for _, e := range menu.Database.Entries {
 		defaultSequence := "{USERNAME}{TAB}{PASSWORD}{ENTER}"
 		if e.FullEntry.AutoType.DefaultSequence != "" {
@@ -573,6 +574,8 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 			}
 			if reg.Match([]byte(activeWindow)) {
 				matches = append(matches, pair{ms[0], e, ms[1]})
+			} else {
+				unmatches = append(unmatches, pair{ms[0], e, ms[1]})
 			}
 		}
 	}
@@ -587,6 +590,7 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		entry = &matches[0].ent
 		keySeq = matches[0].seq
 	default:
+		matches = append(matches, unmatches...)
 		items := make([]string, len(matches))
 		for i, m := range matches {
 			items[i] = fmt.Sprintf("%s - %s - (%s)", m.ent.FullEntry.GetContent("Title"), m.reg, m.seq)
