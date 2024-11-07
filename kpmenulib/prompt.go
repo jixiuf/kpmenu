@@ -36,6 +36,11 @@ type entryItem struct {
 // ErrorPrompt is a structure that handle an error of dmenu/rofi
 type ErrorPrompt struct {
 	Cancelled bool
+	KbCustom1 bool
+	KbCustom2 bool
+	KbCustom3 bool
+	KbCustom4 bool
+	KbCustom5 bool
 	Error     error
 }
 
@@ -429,7 +434,21 @@ func executePrompt(command []string, input *strings.Reader) (result string, erro
 				outErr.String(),
 			)
 		} else {
-			errorPrompt.Cancelled = true
+			switch err.Error() {
+			case "exit status 10":
+				errorPrompt.KbCustom1 = true
+			case "exit status 11":
+				errorPrompt.KbCustom2 = true
+			case "exit status 12":
+				errorPrompt.KbCustom3 = true
+			case "exit status 13":
+				errorPrompt.KbCustom4 = true
+			case "exit status 14":
+				errorPrompt.KbCustom5 = true
+
+			default:
+				errorPrompt.Cancelled = true
+			}
 		}
 	}
 	// Trim output
@@ -450,6 +469,7 @@ func getCommand(menu *Menu, style string, pass bool, custom string) ([]string, E
 			"-i",
 			"-dmenu",
 			"-p", style,
+			"-mesg", "Alt-1: type user/passwd, Alt-2: type user, Alt-3: type TOTP, Alt-4:type passwd&RET Alt-5:URL ",
 		}
 		if pass {
 			command = append(command, "-password")
@@ -565,6 +585,24 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		sel, err := PromptChoose(menu, items)
 		ep := ErrorPrompt{}
 		if err != ep || sel == -1 {
+			if err.KbCustom1 {
+				entry = &matches[sel].ent
+				keySeq = "{USERNAME}"
+			} else if err.KbCustom2 {
+				entry = &matches[sel].ent
+				keySeq = "{PASSWORD}"
+			} else if err.KbCustom3 {
+				// keySeq = "{USERNAME}{TAB}{PASSWORD}{ENTER}"
+				keySeq = "{TOTP}"
+				entry = &matches[sel].ent
+			} else if err.KbCustom4 {
+				keySeq = "{PASSWORD}{ENTER}"
+				entry = &matches[sel].ent
+			} else if err.KbCustom5 {
+				keySeq = "{URL}"
+				entry = &matches[sel].ent
+			}
+
 			return entry, keySeq, ep
 		}
 		entry = &matches[sel].ent
