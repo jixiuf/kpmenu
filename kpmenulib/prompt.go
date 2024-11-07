@@ -537,7 +537,7 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 			defaultSequence = e.FullEntry.AutoType.DefaultSequence
 		}
 		// [Regexp, KeySequence]
-		mss := [][]string{{".*" + e.FullEntry.GetContent("Title") + ".*", defaultSequence}}
+		mss := [][]string{}
 		if e.FullEntry.AutoType.Associations != nil {
 			for _, at := range e.FullEntry.AutoType.Associations {
 				// Check if there's a window association, and if so, make sure it's a regexp
@@ -564,6 +564,8 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 				mss = append(mss, []string{ms, seq})
 			}
 		}
+		mss = append(mss, []string{".*" + e.FullEntry.GetContent("Title") + ".*", defaultSequence})
+
 		for _, ms := range mss {
 			reg, err := regexp.Compile(ms[0])
 			if err != nil {
