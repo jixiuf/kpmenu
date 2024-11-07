@@ -73,6 +73,10 @@ func iterateGroup(kpGroup gokeepasslib.Group) []Entry {
 	// Get entries of the current group
 	for _, kpEntry := range kpGroup.Entries {
 		// Insert entry
+		if kpEntry.AutoType.DefaultSequence == "" {
+			kpEntry.AutoType.DefaultSequence = kpGroup.DefaultAutoTypeSequence
+		}
+
 		entries = append(entries, Entry{
 			UUID:      kpEntry.UUID,
 			FullEntry: kpEntry,
