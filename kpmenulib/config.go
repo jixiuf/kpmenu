@@ -166,7 +166,7 @@ func InitializeFlags(args []string) *claptrap.CommandConfig {
 	reg.Add("--cacheTimeout", 60*time.Second, "Timeout of cache in seconds")                                           // &c.General.CacheTimeout
 	reg.Add("--nootp", false, "Disable OTP handling")                                                                  // &c.General.NoOTP
 	reg.Add("--noautotype", false, "Disable autotype handling")                                                        // &c.General.DisableAutotype
-	reg.Add("--autotypealwaysconfirm", false, "Always confirm autotype, even when there's only 1 selection")           // &c.General.AutotypeConfirm
+	reg.Add("--autotypeConfirm", false, "Always confirm autotype, even when there's only 1 selection")                 // &c.General.AutotypeConfirm
 	reg.Add("--autotypeNoAuto", false, "Prompt for autotype entry instead of trying to detect by active window title") // &c.General.AutotypeNoAuto
 
 	// Executable

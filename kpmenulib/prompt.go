@@ -584,14 +584,11 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 
 	var entry *Entry
 	var keySeq string
-	switch len(matches) {
-	case 0:
-		errPrompt.Error = fmt.Errorf("no autotype window match for %s", activeWindow)
-		return entry, keySeq, errPrompt
-	case 1:
+	if len(matches) == 1 && !menu.Configuration.General.AutotypeConfirm {
 		entry = &matches[0].ent
 		keySeq = matches[0].seq
-	default:
+
+	} else {
 		matches = append(matches, unmatches...)
 		items := make([]string, len(matches))
 		for i, m := range matches {
@@ -623,18 +620,6 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		}
 		entry = &matches[sel].ent
 		keySeq = matches[sel].seq
-	}
-
-	if len(matches) == 1 && menu.Configuration.General.AutotypeConfirm {
-		sel, err := PromptChoose(menu, []string{
-			"Auto-type " + entry.FullEntry.GetContent("Title"),
-			"Cancel",
-		})
-		nulErr := ErrorPrompt{}
-		if sel != 0 || err != nulErr {
-			errPrompt.Cancelled = true
-			return entry, "", errPrompt
-		}
 	}
 	return entry, keySeq, errPrompt
 }
