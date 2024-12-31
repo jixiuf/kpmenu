@@ -228,13 +228,13 @@ func (r Dotool) FindIds(s string) ([]int, error) {
 }
 func (r Dotool) ActivePID(s int) {
 }
-func run(command, input string) error {
+func run(command, input string, arg ...string) (output []byte, err error) {
 	var cmd *exec.Cmd
-	cmd = exec.Command(command)
+	cmd = exec.Command(command, arg...)
 
 	if input != "" {
 		cmd.Stdin = bytes.NewBuffer([]byte(input))
 	}
-	return cmd.Run()
-
+	output, err = cmd.Output()
+	return
 }
