@@ -66,6 +66,7 @@ type ConfigurationStyle struct {
 type ConfigurationDatabase struct {
 	Database        string
 	KeyFile         string
+	KeyFileData     string
 	Password        string
 	FieldOrder      string
 	FillOtherFields bool
@@ -193,13 +194,13 @@ func InitializeFlags(args []string) *claptrap.CommandConfig {
 	reg.Add("--formatEntry", "{Title} - {UserName}", "Template for the entry list")
 
 	// Database
-	reg.Add("--database", "-d", "", "Path to the KeePass database")                                       // &c.Database.Database
-	reg.Add("--keyfile", "-k", "", "Path to the database keyfile")                                        // &c.Database.KeyFile
-	reg.Add("--password", "-p", "", "Password of the database")                                           // &c.Database.Password
-	reg.Add("--fieldOrder", "Password UserName URL", "String order of fields to show on field selection") // &c.Database.FieldOrder
-	reg.Add("--fillOtherFields", false, "Enable fill of remaining fields")                                // &c.Database.FillOtherFields
-	reg.Add("--fillBlacklist", "", "String of blacklisted fields that won't be shown")                    // &c.Database.FillBlacklist
-
+	reg.Add("--database", "-d", "", "Path to the KeePass database")                                                                                                                           // &c.Database.Database
+	reg.Add("--keyFileData", "-y", "", "Retrieve key file data from the specified command. The output of this command must be in hexadecimal format, for example: ykchalresp -x -2 -H %salt") // &c.Database.KeyFileData
+	reg.Add("--keyFile", "-k", "", "Path to the database keyfile")                                                                                                                            // &c.Database.KeyFile
+	reg.Add("--password", "-p", "", "Password of the database")                                                                                                                               // &c.Database.Password
+	reg.Add("--fieldOrder", "Password UserName URL", "String order of fields to show on field selection")                                                                                     // &c.Database.FieldOrder
+	reg.Add("--fillOtherFields", false, "Enable fill of remaining fields")                                                                                                                    // &c.Database.FillOtherFields
+	reg.Add("--fillBlacklist", "", "String of blacklisted fields that won't be shown")                                                                                                        // &c.Database.FillBlacklist
 	reg.Parse(args)
 	return reg
 }

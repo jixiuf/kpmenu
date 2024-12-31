@@ -79,6 +79,7 @@ func (menu *Menu) Show() bool {
 	// If something related to the database is changed we must re-open it, or exit true
 	if copiedDatabase.Database != menu.Configuration.Database.Database ||
 		copiedDatabase.KeyFile != menu.Configuration.Database.KeyFile ||
+		copiedDatabase.KeyFileData != menu.Configuration.Database.KeyFileData ||
 		copiedDatabase.Password != menu.Configuration.Database.Password {
 		menu.Database.Loaded = false
 		log.Printf("database configuration is changed, re-opening the database")
@@ -116,7 +117,9 @@ func (menu *Menu) Show() bool {
 
 // OpenDatabase asks for password and populates the database
 func (m *Menu) OpenDatabase() *ErrorDatabase {
-	// Check if there is already a password/key set
+	// yubikey challenge response need data header
+	m.Database.DeocdeDatabase(m.Configuration)
+
 	if !m.Database.Loaded {
 		// Get password from config otherwise ask for it
 		password := m.Configuration.Database.Password
@@ -135,7 +138,7 @@ func (m *Menu) OpenDatabase() *ErrorDatabase {
 		}
 
 		// Add credentials into the database
-		m.Database.AddCredentialsToDatabase(m.Configuration, password)
+		m.Database.AddCredentialsToDatabase(m.Configuration, password, m.Database.Keepass.Header.FileHeaders.KdfParameters.Salt[:])
 	}
 
 	// Open database
