@@ -33,6 +33,7 @@ type ConfigurationGeneral struct {
 	DisableAutotype  bool          // Disable autotype
 	AutotypeConfirm  bool          // User must always confirm
 	AutotypeNoAuto   bool          // Always prompt user to select the entry to autotype
+	AutotypeSequence string        // auto type sequence demo:{USERNAME}{PASSWORD}
 }
 
 // ConfigurationExecutable is the sub-structure of the configuration related to tools executed by kpmenu
@@ -169,6 +170,7 @@ func InitializeFlags(args []string) *claptrap.CommandConfig {
 	reg.Add("--noautotype", false, "Disable autotype handling")                                                        // &c.General.DisableAutotype
 	reg.Add("--autotypeConfirm", false, "Always confirm autotype, even when there's only 1 selection")                 // &c.General.AutotypeConfirm
 	reg.Add("--autotypeNoAuto", false, "Prompt for autotype entry instead of trying to detect by active window title") // &c.General.AutotypeNoAuto
+	reg.Add("--autotypeSequence", "", "auto type sequence demo:{USERNAME}{PASSWORD}")                                  // &c.General.AutotypeSequence
 
 	// Executable
 	reg.Add("--customPromptPassword", "", "Custom executable for prompt password")                                                // &c.Executable.CustomPromptPassword

@@ -41,20 +41,22 @@ func NewMenu(config *Configuration) (*Menu, error) {
 
 // Execute is the function used to open the database (if necessary) and open the menu
 // returns true if the program should exit
-func (menu *Menu) Execute() bool {
+func (menu *Menu) Execute(out *PacketResp) (fatal bool) {
 	// Open database
-	if menu.Database.Loaded == false {
+	if !menu.Database.Loaded {
 		if err := menu.OpenDatabase(); err != nil {
 			log.Print(err)
 			return err.Fatal
 		}
 	} else if menu.Configuration.Flags.Daemon {
 		// reload Database for next time
-		defer menu.OpenDatabase()
+		defer func() {
+			go menu.OpenDatabase()
+		}()
 	}
 
 	if !menu.Configuration.General.DisableAutotype && menu.Configuration.Flags.Autotype {
-		if err := PromptAutotype(menu); err.Error != nil {
+		if err := PromptAutotype(menu, out); err.Error != nil {
 			log.Print(err.Error)
 		}
 		return false
@@ -72,7 +74,7 @@ func (menu *Menu) Execute() bool {
 
 // Show checks if the database configuration is changed, if so it will re-open the database
 // returns true if the program should exit
-func (menu *Menu) Show() bool {
+func (menu *Menu) Show(out *PacketResp) (fatal bool) {
 	// Be sure that the database configuration is the same, otherwise a Run is necessary
 	copiedDatabase := menu.Configuration.Database
 
@@ -91,13 +93,13 @@ func (menu *Menu) Show() bool {
 			// Cache disabled
 			menu.Database.Loaded = false
 			log.Printf("no cache flag is set, re-opening the database")
-		} else if (menu.CacheStart == time.Time{}) {
+		} else if (menu.CacheStart.Equal(time.Time{})) {
 			// Cache enabled via client call
 			menu.Database.Loaded = false
 			log.Printf("cache start time not set, re-opening the database")
 		} else {
 			// Cache exists
-			difference := time.Now().Sub(menu.CacheStart)
+			difference := time.Since(menu.CacheStart)
 			if difference < menu.Configuration.General.CacheTimeout {
 				// Cache is valid
 				if !menu.Configuration.General.CacheOneTime {
@@ -112,7 +114,7 @@ func (menu *Menu) Show() bool {
 		}
 	}
 
-	return menu.Execute()
+	return menu.Execute(out)
 }
 
 // OpenDatabase asks for password and populates the database

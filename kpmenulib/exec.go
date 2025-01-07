@@ -51,7 +51,9 @@ func (s Sequence) Exec(ds Pairs, typer Typer) {
 	metas := regexp.MustCompile("([+^%@]+[a-z~]?)|([^+^%@~]+)|(~)")
 	lag := time.Duration(s.Keylag) * time.Millisecond
 	// Give a little pause before we start doing anything
-	time.Sleep(lag)
+	if lag > 0 {
+		time.Sleep(lag)
+	}
 	for _, seq := range s.SeqEntries {
 		err = nil
 		switch seq.Type {
@@ -62,7 +64,9 @@ func (s Sequence) Exec(ds Pairs, typer Typer) {
 			i := keyMap[seq.Token]
 			if i.isTap {
 				typer.KeyTap(i.val)
-				time.Sleep(lag)
+				if lag > 0 {
+					time.Sleep(lag)
+				}
 			} else {
 				typer.TypeStr(i.val, s.Keylag)
 			}
@@ -95,12 +99,16 @@ func (s Sequence) Exec(ds Pairs, typer Typer) {
 						for _, m := range mods {
 							if str, ok := m.(string); ok {
 								typer.KeyTap(str)
-								time.Sleep(lag)
+								if lag > 0 {
+									time.Sleep(lag)
+								}
 							}
 						}
 					} else if len(mods) == 0 {
 						typer.KeyTap(typing)
-						time.Sleep(lag)
+						if lag > 0 {
+							time.Sleep(lag)
+						}
 					} else {
 						typer.KeyTap(typing, mods...)
 					}
@@ -130,6 +138,7 @@ type Typer interface {
 	FindIds(string) ([]int, error)
 	// ActivePID makes the window the ID active
 	ActivePID(int)
+	Delay(t time.Duration)
 }
 
 // handleCommand processes tokens with arguments, such as DELAY and VKEY
@@ -146,7 +155,7 @@ func handleCommand(t Typer, seq SeqEntry) error {
 		if e != nil {
 			return fmt.Errorf("bad argument %s for DELAY: %s", seq.Args[0], e)
 		}
-		time.Sleep(time.Duration(d) * time.Millisecond)
+		t.Delay(time.Duration(d) * time.Millisecond)
 	case "VKEY":
 		// FIXME implement VKEY
 		return fmt.Errorf("VKEY is not implemented")
@@ -211,6 +220,9 @@ func (r Robot) FindIds(s string) ([]int, error) {
 func (r Robot) ActivePID(s int) {
 	robotgo.ActivePid(s)
 }
+func (r Robot) Delay(t time.Duration) {
+	time.Sleep(t)
+}
 
 type Dotool struct {
 	cmd string
@@ -228,6 +240,10 @@ func (r Dotool) FindIds(s string) ([]int, error) {
 }
 func (r Dotool) ActivePID(s int) {
 }
+func (r Dotool) Delay(t time.Duration) {
+	time.Sleep(t)
+}
+
 func run(command, input string, arg ...string) (output []byte, err error) {
 	var cmd *exec.Cmd
 	cmd = exec.Command(command, arg...)
@@ -237,4 +253,28 @@ func run(command, input string, arg ...string) (output []byte, err error) {
 	}
 	output, err = cmd.Output()
 	return
+}
+
+type Echo struct {
+	out *PacketResp
+	lag int
+}
+
+func (r *Echo) TypeStr(s string, lag int) {
+	r.out.Output += s
+}
+func (r *Echo) KeyTap(s string, args ...interface{}) {
+	switch s {
+	case "enter":
+		r.out.Output += "\n"
+	case "tab":
+		r.out.Output += "\t"
+	}
+}
+func (r *Echo) FindIds(s string) ([]int, error) {
+	return nil, nil
+}
+func (r *Echo) ActivePID(s int) {
+}
+func (r *Echo) Delay(t time.Duration) {
 }

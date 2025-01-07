@@ -311,11 +311,11 @@ func PromptChoose(menu *Menu, items []string) (int, ErrorPrompt) {
 // If `--autotypenoauto` is set, the user will *always* be prompted run autotype, or cancel.
 //
 // `--noautotype` is handled by the caller -- this function does not perform that check.
-func PromptAutotype(menu *Menu) ErrorPrompt {
+func PromptAutotype(menu *Menu, out *PacketResp) ErrorPrompt {
 	var entry *Entry
 	// The rule for keepass(es) key sequence selection is:
 	//    Assoc > Configured entry default > appl. default
-	var keySeq string
+	var keySeq = menu.Configuration.General.AutotypeSequence
 	var errPrompt ErrorPrompt
 	if menu.Configuration.General.AutotypeNoAuto {
 		entry, errPrompt = PromptEntries(menu)
@@ -326,7 +326,10 @@ func PromptAutotype(menu *Menu) ErrorPrompt {
 		}
 
 		// Try to guess the key sequence
-		keySeq = entry.FullEntry.AutoType.DefaultSequence
+		if keySeq == "" {
+			keySeq = entry.FullEntry.AutoType.DefaultSequence
+		}
+
 		if keySeq == "" {
 			if entry.FullEntry.AutoType.Associations != nil {
 				for _, assoc := range entry.FullEntry.AutoType.Associations {
@@ -396,6 +399,11 @@ func PromptAutotype(menu *Menu) ErrorPrompt {
 		seq.Exec(rvp, Dotool{
 			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
 			lag: seq.Keylag,
+		})
+	case "echo":
+		seq.Exec(rvp, &Echo{
+			out: out,
+			lag: 0,
 		})
 	default:
 		command := strings.Split(menu.Configuration.Executable.CustomAutotypeTyper, " ")
@@ -620,6 +628,10 @@ func identifyWindow(menu *Menu) (*Entry, string, ErrorPrompt) {
 		}
 		entry = &matches[sel].ent
 		keySeq = matches[sel].seq
+	}
+	if menu.Configuration.General.AutotypeSequence != "" {
+		//  --autotypeSequence={USERNAME}
+		keySeq = menu.Configuration.General.AutotypeSequence
 	}
 	return entry, keySeq, errPrompt
 }
