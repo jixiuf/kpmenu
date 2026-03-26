@@ -4,9 +4,15 @@ import (
 	"errors"
 	"log"
 	"os/exec"
+	"runtime"
 )
 
 func validateConfig(config *Configuration) error {
+	// Auto-detect macOS
+	if runtime.GOOS == "darwin" {
+		config.General.ClipboardTool = ClipboardToolMac
+	}
+
 	// Check if database has been selected
 	if config.Database.Database == "" {
 		// Database not found

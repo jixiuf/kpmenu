@@ -20,6 +20,8 @@ func CopyToClipboard(menu *Menu, text string) error {
 		cmd = exec.Command("xsel", "-ib")
 	case ClipboardToolWlclipboard:
 		cmd = exec.Command("wl-copy")
+	case ClipboardToolMac:
+		cmd = exec.Command("pbcopy")
 	case ClipboardToolCustom:
 		customCommand, err := shlex.Split(menu.Configuration.Executable.CustomClipboardCopy)
 		if err != nil {
@@ -54,6 +56,8 @@ func GetClipboard(menu *Menu) (string, error) {
 		cmd = exec.Command("xsel", "-b")
 	case ClipboardToolWlclipboard:
 		cmd = exec.Command("wl-paste", "-n")
+	case ClipboardToolMac:
+		cmd = exec.Command("pbpaste")
 	case ClipboardToolCustom:
 		customCommand, err := shlex.Split(menu.Configuration.Executable.CustomClipboardPaste)
 		if err != nil {
@@ -101,6 +105,8 @@ func CleanClipboard(menu *Menu, text string) {
 						cmd = exec.Command("xsel", "-bc")
 					case ClipboardToolWlclipboard:
 						cmd = exec.Command("wl-copy", "-c")
+					case ClipboardToolMac:
+						cmd = exec.Command("pbcopy")
 					case ClipboardToolCustom:
 						customCommand, err := shlex.Split(menu.Configuration.Executable.CustomClipboardClean)
 						if err == nil {

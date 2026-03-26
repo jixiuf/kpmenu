@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 
@@ -93,6 +94,7 @@ const (
 const (
 	ClipboardToolXsel        = "xsel"
 	ClipboardToolWlclipboard = "wl-clipboard"
+	ClipboardToolMac         = "mac"
 	ClipboardToolCustom      = "custom"
 )
 
@@ -104,10 +106,15 @@ const (
 
 // NewConfiguration initializes a new Configuration pointer
 func NewConfiguration() *Configuration {
+	clipboardTool := ClipboardToolXsel
+	if runtime.GOOS == "darwin" {
+		clipboardTool = ClipboardToolMac
+	}
+
 	return &Configuration{
 		General: ConfigurationGeneral{
 			Menu:             PromptDmenu,
-			ClipboardTool:    ClipboardToolXsel,
+			ClipboardTool:    clipboardTool,
 			ClipboardTimeout: 15 * time.Second,
 			CacheTimeout:     60 * time.Second,
 		},
