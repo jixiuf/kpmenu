@@ -3,6 +3,8 @@ package kpmenulib
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -216,8 +218,16 @@ func InitializeFlags(args []string) *claptrap.CommandConfig {
 
 // LoadConfig loads the configuration into Configuration
 func LoadConfig(reg *claptrap.CommandConfig, conf *Configuration) error {
-	// FIXME might have to manually load the config, b/c of the differences in config serialization
-	err := clapconf.LoadConfig("")
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	configPath := filepath.Join(home, ".config")
+	if os.Getenv("XDG_CONFIG_HOME") == "" {
+		os.Setenv("XDG_CONFIG_HOME", configPath)
+	}
+
+	err = clapconf.LoadConfig("")
 	if err != nil {
 		log.Print("If upgrading from AlessioDP/kpmenu, the configuration file has changed.")
 		log.Print("Remove all of the section headings (e.g. '[general]'), and camelCase the")
