@@ -1,7 +1,7 @@
 # You can store it into $HOME/.config/kpmenu/config
 # Supported: dmenu, rofi, wofi, custom
 menu = "custom"
-# Supported: xsel, wl-clipboard, custom
+# Supported: xsel, wl-clipboard,mac,custom
 clipboardTool = "wl-clipboard"
 clipboardTimeout = "15s"
 nocache = false
@@ -11,11 +11,39 @@ nootp = false
 daemon=true
 autotype=false
 customAutotypeWindowID=""" hyprctl activewindow -j| jq -c '"\\(.title) - \\(.class)"' """
-customAutotypeTyper="dotoolc"
+# # for macos
+# customAutotypeWindowID="""
+# osascript <<'EOF'
+# tell application "System Events"
+#     set frontApp to first application process whose frontmost is true
+#     set bundleID to bundle identifier of frontApp
+#     set frontAppName to name of frontApp
+#     tell process frontAppName
+#         try
+#             set windowTitle to name of front window
+#         on error
+#             set windowTitle to ""
+#         end try
+#     end tell
+# end tell
+# return windowTitle & " - " & bundleID
+# EOF
+#  """
+
+ #add  require("hs.ipc") in your init.lua
+# customAutotypeTyper="/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs"
+customAutotypeTyper="dotoolc"   #use Hammerspoon for macos
+
 # autotypeNoAuto=true
 # Executable of menus used to prompt actions
 customPromptPassword =""" sh -c "gpg -d ~/.password-store/bitwarden.com.gpg|head -n 1" """
 # customPromptPassword =""" echo -n '' """
+
+
+# use choose for macos (see https://github.com/chipsenkbeil/choose/pull/67)
+# customPromptMenu =  """choose """
+# customPromptEntries = """choose  -w 80 -p "C-7:user,C-8:passwd C-9:TOTP C-RET:passwd+RET C-0:URL" -K 1:Control+7 -K 2:Control+8 -K 3:Control+9 -K 4:Control+Return -K 5:Control+0 """
+# customPromptFields  = """choose  -w 80 -p "C-7:user,C-8:passwd C-9:TOTP C-RET:passwd+RET C-0:URL" -K 1:Control+7 -K 2:Control+8 -K 3:Control+9 -K 4:Control+Return -K 5:Control+0 """
 
 customPromptMenu =  """rofi -dmenu  -i  -config ~/.config/rofi/config-bwmenu.rasi """
 customPromptEntries = """rofi -dmenu  -i -mesg "C-7:user,C-8:passwd C-9:TOTP C-RET:passwd+RET C-0:URL" -p "Select entry" -config ~/.config/rofi/config-bwmenu.rasi -kb-custom-1 "Control+7" -kb-custom-2 "Control+8" -kb-custom-3 "Control+9" -kb-custom-4 "Control+Return" -kb-custom-5 "Control+0" """
