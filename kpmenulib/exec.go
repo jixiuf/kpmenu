@@ -77,7 +77,7 @@ func (s Sequence) Exec(ds Pairs, typer Typer) {
 			for _, part := range parts {
 				if strings.ContainsAny(part, "+^%@~") {
 					var typing string
-					mods := make([]interface{}, 0)
+					mods := make([]any, 0)
 					for i := 0; i < len(part); i++ {
 						switch part[i] {
 						case '+':
@@ -133,7 +133,7 @@ type Typer interface {
 	TypeStr(string, int)
 	// KeyTap takes keycode descriptions, like "enter" and "tab" and outputs
 	// character codes
-	KeyTap(string, ...interface{})
+	KeyTap(string, ...any)
 	// FindIds finds window IDs for the named application
 	FindIds(string) ([]int, error)
 	// ActivePID makes the window the ID active
@@ -211,7 +211,7 @@ func (r Robot) TypeStr(s string, lag int) {
 	robotgo.MilliSleep(lag)
 	robotgo.TypeStrDelay(s, lag)
 }
-func (r Robot) KeyTap(s string, args ...interface{}) {
+func (r Robot) KeyTap(s string, args ...any) {
 	robotgo.KeyTap(s, args...)
 }
 func (r Robot) FindIds(s string) ([]int, error) {
@@ -232,7 +232,7 @@ type Dotool struct {
 func (r Dotool) TypeStr(s string, lag int) {
 	run(r.cmd, fmt.Sprintf("typedelay 12\ntype %s\n", s))
 }
-func (r Dotool) KeyTap(s string, args ...interface{}) {
+func (r Dotool) KeyTap(s string, args ...any) {
 	run(r.cmd, fmt.Sprintf("key %s\n", s))
 }
 func (r Dotool) FindIds(s string) ([]int, error) {
@@ -263,7 +263,7 @@ type Echo struct {
 func (r *Echo) TypeStr(s string, lag int) {
 	r.out.Output += s
 }
-func (r *Echo) KeyTap(s string, args ...interface{}) {
+func (r *Echo) KeyTap(s string, args ...any) {
 	switch s {
 	case "enter":
 		r.out.Output += "\n"
