@@ -224,6 +224,28 @@ func (r Robot) Delay(t time.Duration) {
 	time.Sleep(t)
 }
 
+type Hammerspoon struct {
+	cmd string
+	lag int
+}
+
+// -- /Applications/Hammerspoon.app/Contents/Frameworks/hs/hs -c  "hs.eventtap.keyStrokes('Hello from Terminal')"
+// -- /Applications/Hammerspoon.app/Contents/Frameworks/hs/hs -c "hs.eventtap.keyStroke({'cmd'}, 'v')"
+func (r Hammerspoon) TypeStr(s string, lag int) {
+	run(r.cmd, "", "-c", fmt.Sprintf("hs.eventtap.keyStrokes('%s')", s))
+}
+func (r Hammerspoon) KeyTap(s string, args ...any) {
+	run(r.cmd, "", "-c", fmt.Sprintf("hs.eventtap.keyStroke({},'%s')", s))
+}
+func (r Hammerspoon) FindIds(s string) ([]int, error) {
+	return nil, nil
+}
+func (r Hammerspoon) ActivePID(s int) {
+}
+func (r Hammerspoon) Delay(t time.Duration) {
+	// time.Sleep(t)
+}
+
 type Dotool struct {
 	cmd string
 	lag int

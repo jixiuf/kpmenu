@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -392,9 +393,15 @@ func PromptAutotype(menu *Menu, out *PacketResp) ErrorPrompt {
 		}
 	}
 	seq.Keylag = 500 // ms
-	switch menu.Configuration.Executable.CustomAutotypeTyper {
+	_, cmd := filepath.Split(menu.Configuration.Executable.CustomAutotypeTyper)
+	switch cmd {
 	case "":
 		seq.Exec(rvp, Robot{})
+	case "hs":
+		seq.Exec(rvp, Hammerspoon{
+			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
+			lag: seq.Keylag,
+		})
 	case "dotool", "dotoolc":
 		seq.Exec(rvp, Dotool{
 			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
