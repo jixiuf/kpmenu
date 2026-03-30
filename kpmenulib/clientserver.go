@@ -198,3 +198,16 @@ func getPort() (string, error) {
 	data, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".cache/kpmenu/server.port"))
 	return string(data), err
 }
+
+func IsServerRunning() bool {
+	port, err := getPort()
+	if err != nil {
+		return false
+	}
+	conn, err := net.Dial("tcp", "localhost:"+port)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}

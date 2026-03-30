@@ -39,7 +39,10 @@ func main() {
 
 	// Start client
 	if err = kpmenulib.StartClient(); err != nil {
-		// Failed to comunicate with server - start server
+		if kpmenulib.IsServerRunning() {
+			log.Fatalf("kpmenu is already running")
+			os.Exit(1)
+		}
 		err = kpmenulib.StartServer(menu)
 
 		if err != nil {
