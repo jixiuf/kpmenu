@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	_ "embed"
+	"encoding/base64"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -263,6 +264,83 @@ func (r Dotool) FindIds(s string) ([]int, error) {
 func (r Dotool) ActivePID(s int) {
 }
 func (r Dotool) Delay(t time.Duration) {
+	time.Sleep(t)
+}
+
+// Xremap drives xremap's IPC injection (doc/reference_ipc.md) through its
+// subcommand-based client mode: `xremap key CHORD`, `xremap type --base64 ...`,
+// one command per invocation.
+type Xremap struct {
+	cmd string
+	lag int
+}
+
+// xremap's chord parser accepts evdev key names (KEY_ prefix optional), but
+// not the robotgo-style names that keyMap hands to KeyTap. Map the odd ones.
+var xremapKeyNames = map[string]string{
+	"lcmd":        "leftmeta",
+	"rcmd":        "rightmeta",
+	"num_lock":    "numlock",
+	"num_clear":   "numlock",
+	"printscreen": "print",
+	"num+":        "kpplus",
+	"num-":        "kpminus",
+	"num*":        "kpasterisk",
+	"num/":        "kpslash",
+	"numpad_0":    "kp0",
+	"numpad_1":    "kp1",
+	"numpad_2":    "kp2",
+	"numpad_3":    "kp3",
+	"numpad_4":    "kp4",
+	"numpad_5":    "kp5",
+	"numpad_6":    "kp6",
+	"numpad_7":    "kp7",
+	"numpad_8":    "kp8",
+	"numpad_9":    "kp9",
+}
+
+func (r Xremap) TypeStr(s string, lag int) {
+	// Send the text as base64: multi-line text stays intact, and we avoid
+	// `type TEXT` word-joining, which collapses runs of spaces.
+	// Inter-character pacing is configured xremap-side via `type_delay_ms`
+	// (10--20 ms is the documented remedy for Wayland character drops).
+	payload := base64.StdEncoding.EncodeToString([]byte(s))
+	if _, err := run(r.cmd, "", "type", "--base64", payload); err != nil {
+		log.Printf("xremap typer: type failed: %v", err)
+	}
+}
+
+func (r Xremap) KeyTap(s string, args ...any) {
+	chord := make([]string, 0, len(args)+1)
+	for _, m := range args {
+		mod, ok := m.(string)
+		if !ok {
+			continue
+		}
+		switch mod {
+		case "cmd":
+			mod = "super"
+		case "control":
+			mod = "ctrl"
+		}
+		chord = append(chord, mod)
+	}
+	if mapped, ok := xremapKeyNames[s]; ok {
+		s = mapped
+	}
+	chord = append(chord, s)
+	joined := strings.Join(chord, "+")
+	if _, err := run(r.cmd, "", "key", joined); err != nil {
+		log.Printf("xremap typer: key %v failed: %v", joined, err)
+	}
+}
+
+func (r Xremap) FindIds(s string) ([]int, error) {
+	return nil, nil
+}
+func (r Xremap) ActivePID(s int) {
+}
+func (r Xremap) Delay(t time.Duration) {
 	time.Sleep(t)
 }
 

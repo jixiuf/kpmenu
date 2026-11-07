@@ -25,7 +25,7 @@ The new flags are:
 - Switches to set the external programs for getting the active window title, and for executing the autotype
 - A flag to trigger an autotype, sent by the client to the server
 
-Autotyping is handled internally or externally, the autotype program can be [dotoolc/dotool](https://sr.ht/~geb/dotool/). 
+Autotyping is handled internally or externally, the autotype program can be [dotoolc/dotool](https://sr.ht/~geb/dotool/) or [xremap](https://github.com/k0kubun/xremap) (IPC injection, requires `ipc.socket` and `ipc.inject` enabled in the xremap config). 
 
 When triggered by the client, the server launches the `customAutotypeWindowID` program (default: ``) to identify the currently active window. It then scans the database for a matching entry, using `AutoType.Association` or the `Title` if no association is set. If it finds a matching entry, it launches `customAutotypeTyper` (default: ``) and writes the key sequence and the requested fields to the process' STDIN.
 

@@ -407,6 +407,11 @@ func PromptAutotype(menu *Menu, out *PacketResp) ErrorPrompt {
 			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
 			lag: seq.Keylag,
 		})
+	case "xremap":
+		seq.Exec(rvp, Xremap{
+			cmd: menu.Configuration.Executable.CustomAutotypeTyper,
+			lag: seq.Keylag,
+		})
 	case "echo":
 		seq.Exec(rvp, &Echo{
 			out: out,
